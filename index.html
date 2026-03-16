@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A peaceful café experience in the heart of Vadodara. Discover our serene ambiance, delicious food, and the perfect place to unwind.">
+    <title>Nirvaan Cafe &amp; Lounge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#b45309',
+                        background: '#fcfaf8',
+                        foreground: '#1c1917',
+                        card: '#ffffff'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        /* ─── HERO ─── */
+        .hero-bg {
+            background-image: linear-gradient(rgba(28,25,23,0.5), rgba(28,25,23,0.7)),
+                url('https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .hero-badge,
+        .hero-title,
+        .hero-subtitle,
+        .hero-btns {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        /* ─── FLOATING IMAGE ─── */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(-3deg); }
+            50%       { transform: translateY(-14px) rotate(-3deg); }
+        }
+        .hero-float-img {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        /* ─── ACCORDION ─── */
+        .accordion-content {
+            transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .accordion-toggle:checked ~ .accordion-content {
+            max-height: 200px;
+            opacity: 1;
+            padding-bottom: 1rem;
+        }
+        .accordion-toggle:checked ~ .accordion-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* ─── SCROLL-REVEAL BASE STATES ─── */
+        .reveal-up    { opacity: 0; transform: translateY(50px); }
+        .reveal-left  { opacity: 0; transform: translateX(-60px); }
+        .reveal-right { opacity: 0; transform: translateX(60px); }
+        .reveal-scale { opacity: 0; transform: scale(0.85); }
+
+        /* ─── MENU CAROUSEL ─── */
+        .menu-track {
+            display: flex;
+            gap: 1.5rem;
+            cursor: grab;
+            user-select: none;
+            padding-bottom: 1rem;
+        }
+        .menu-track:active { cursor: grabbing; }
+        .menu-track .menu-card { flex: 0 0 260px; }
+        .menu-scroll-wrapper {
+            overflow-x: scroll;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+        }
+        .menu-scroll-wrapper::-webkit-scrollbar { display: none; }
+
+        /* ─── STACKED CARDS ─── */
+        .stacked-section {
+            position: relative;
+            padding: 6rem 0 10rem;
+        }
+        .stacked-bg {
+            position: fixed;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.22) saturate(0.7);
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .stacked-bg.active { opacity: 1; }
+
+        .stacked-cards-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .stacked-card {
+            position: sticky;
+            background: #f5f3ff;
+            border-radius: 24px;
+            padding: 3rem;
+            margin-bottom: 6px;
+            min-height: 300px;
+            transform-origin: top center;
+            will-change: transform;
+        }
+        .stacked-card:nth-child(1) { top: 80px;  z-index: 10; }
+        .stacked-card:nth-child(2) { top: 88px;  z-index: 11; }
+        .stacked-card:nth-child(3) { top: 96px;  z-index: 12; }
+        .stacked-card:nth-child(4) { top: 104px; z-index: 13; }
+        .stacked-card .card-number {
+            font-size: 5rem;
+            font-weight: 800;
+            color: #c4b5fd;
+            line-height: 1;
+            position: absolute;
+            top: 2rem;
+            right: 2.5rem;
+            opacity: 0.5;
+        }
+        .stacked-card .card-tag {
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #555;
+            border: 1px solid #ccc;
+            border-radius: 999px;
+            padding: 0.25rem 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .stacked-card .card-title {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 700;
+            line-height: 1.15;
+            color: #111;
+            margin-bottom: 1.5rem;
+        }
+        .stacked-card .card-desc-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 0.4rem;
+        }
+        .stacked-card .card-desc {
+            color: #555;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            max-width: 500px;
+        }
+
+        /* ─── CARD HOVER LIFT ─── */
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        /* ─── BUTTON PULSE ─── */
+        @keyframes pulse-ring {
+            0%   { box-shadow: 0 0 0 0 rgba(180,83,9,0.4); }
+            70%  { box-shadow: 0 0 0 10px rgba(180,83,9,0); }
+            100% { box-shadow: 0 0 0 0 rgba(180,83,9,0); }
+        }
+        .btn-pulse { animation: pulse-ring 2.5s infinite; }
+
+        /* ─── NAVBAR ─── */
+        header { transition: background 0.3s ease, box-shadow 0.3s ease; }
+        header.scrolled {
+            background: rgba(255,255,255,0.98) !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        /* ─── TESTIMONIAL ─── */
+        .testimonial-card {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        /* ─── SECTION TITLE UNDERLINE ─── */
+        .animated-title {
+            position: relative;
+            display: inline-block;
+        }
+        .animated-title::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: #b45309;
+            border-radius: 999px;
+            transition: width 0.8s ease 0.2s;
+        }
+        .animated-title.title-visible::after { width: 100%; }
+
+        /* ─── FEATURE ITEMS ─── */
+        .feature-item {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+
+        /* ─── MENU IMAGE ZOOM ─── */
+        .menu-img-wrap {
+            overflow: hidden;
+            border-radius: 9999px;
+            width: 6rem;
+            height: 6rem;
+            margin: 0 auto 1rem;
+            border: 4px solid #fffbeb;
+        }
+        .menu-img-wrap img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+        .menu-card:hover .menu-img-wrap img { transform: scale(1.15); }
+
+        /* ─── MOBILE MENU ─── */
+        #mobile-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+        #mobile-menu.open { max-height: 300px; }
+
+        /* ─── FOOTER CARDS ─── */
+        .footer-card {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        /* ─── FAQ ITEMS ─── */
+        .faq-item {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground antialiased selection:bg-primary selection:text-white">
+
+    <!-- ─── HEADER ─── -->
+    <header id="main-header" class="flex justify-between items-center px-6 py-4 sticky top-0 bg-white/80 backdrop-blur-md z-50 shadow-sm border-b border-gray-100">
+        <a href="#" class="text-2xl font-bold tracking-tight text-primary">Nirvaan Cafe</a>
+        <nav class="hidden md:flex space-x-8 font-medium text-sm">
+            <a href="#home"    class="hover:text-primary transition-colors duration-200">Home</a>
+            <a href="#about"   class="hover:text-primary transition-colors duration-200">About</a>
+            <a href="#menu"    class="hover:text-primary transition-colors duration-200">Menu</a>
+            <a href="#reserve" class="hover:text-primary transition-colors duration-200">Reserve</a>
+        </nav>
+        <div class="hidden md:flex">
+            <a href="#reserve" class="btn-pulse px-5 py-2 bg-primary text-white text-sm font-semibold rounded-full hover:bg-amber-800 transition-colors shadow-sm">Reserve a Table</a>
+        </div>
+        <button id="mobile-toggle" class="md:hidden text-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/>
+            </svg>
+        </button>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="md:hidden bg-white border-b border-gray-100 px-6 sticky top-[65px] z-40">
+        <nav class="flex flex-col space-y-4 py-4 text-sm font-medium">
+            <a href="#home"    class="hover:text-primary transition-colors">Home</a>
+            <a href="#about"   class="hover:text-primary transition-colors">About</a>
+            <a href="#menu"    class="hover:text-primary transition-colors">Menu</a>
+            <a href="#reserve" class="hover:text-primary transition-colors">Reserve</a>
+            <a href="#reserve" class="px-5 py-2 bg-primary text-white text-sm font-semibold rounded-full text-center">Reserve a Table</a>
+        </nav>
+    </div>
+
+    <!-- ─── HERO ─── -->
+    <section id="home" class="hero-bg min-h-[90vh] flex flex-col justify-center items-center text-center px-4 relative overflow-hidden">
+        <div class="max-w-3xl z-10 text-white">
+            <div class="hero-badge inline-flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm text-gray-200 mb-6">
+                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                Welcome to Nirvaan
+            </div>
+            <h1 class="hero-title text-4xl md:text-6xl font-bold leading-tight mb-6 tracking-tight">
+                Relax, Sip &amp; Enjoy at<br>Nirvaan Cafe &amp; Lounge
+            </h1>
+            <p class="hero-subtitle text-lg md:text-xl text-gray-200 mb-10 font-light max-w-2xl mx-auto leading-relaxed">
+                A peaceful café experience in the heart of Vadodara. Discover our serene ambiance, delicious food, and the perfect place to unwind with friends.
+            </p>
+            <div class="hero-btns flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="tel:+919876543210" class="rounded-full px-8 py-3.5 bg-primary text-white font-semibold shadow-lg hover:shadow-xl hover:bg-amber-800 transition-all w-full sm:w-auto">📞 Call Now</a>
+                <a href="#reserve"          class="rounded-full px-8 py-3.5 bg-transparent border-2 border-white text-white font-semibold hover:bg-white hover:text-foreground transition-all w-full sm:w-auto">🗓 Reserve a Table</a>
+            </div>
+        </div>
+        <!-- Floating hero image -->
+        <div class="absolute bottom-0 right-10 w-72 hidden md:block" style="opacity:0" id="hero-img-wrap">
+            <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                 alt="Coffee"
+                 class="hero-float-img rounded-3xl shadow-2xl border-4 border-white/20 w-full h-72 object-cover">
+        </div>
+    </section>
+
+    <!-- ─── ABOUT ─── -->
+    <section id="about" class="py-24 px-6 max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold tracking-tight animated-title" id="about-title">About Nirvaan Cafe &amp; Lounge</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div class="reveal-scale bg-card p-8 rounded-2xl shadow-sm border border-gray-100 card-hover">
+                <div class="h-12 w-12 bg-amber-50 rounded-full flex items-center justify-center mb-6 text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Peaceful Atmosphere</h3>
+                <p class="text-gray-600 leading-relaxed">Enjoy soft background music and a serene environment perfect for working, reading, or catching up with loved ones.</p>
+            </div>
+            <div class="reveal-scale bg-card p-8 rounded-2xl shadow-sm border border-gray-100 card-hover">
+                <div class="h-12 w-12 bg-amber-50 rounded-full flex items-center justify-center mb-6 text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Outdoor Seating</h3>
+                <p class="text-gray-600 leading-relaxed">Experience nature-inspired ambiance with comfortable outdoor seating areas surrounded by beautiful greenery.</p>
+            </div>
+            <div class="reveal-scale bg-card p-8 rounded-2xl shadow-sm border border-gray-100 card-hover">
+                <div class="h-12 w-12 bg-amber-50 rounded-full flex items-center justify-center mb-6 text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Quality Food &amp; Drinks</h3>
+                <p class="text-gray-600 leading-relaxed">Savor delicious menu items crafted with care. From artisanal coffees to mouth-watering appetizers and main courses.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── MENU (Drag Carousel) ─── -->
+    <section id="menu" class="py-24 bg-gray-50/50 px-6 overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold tracking-tight reveal-up animated-title" id="menu-title">Popular Menu Highlights</h2>
+                <p class="text-gray-500 mt-3 reveal-up">Discover our signature items loved by customers across Vadodara</p>
+            </div>
+            <div class="menu-scroll-wrapper reveal-up">
+                <div class="menu-track" id="menu-track">
+                    <div class="menu-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100 card-hover text-center">
+                        <div class="menu-img-wrap"><img src="https://images.unsplash.com/photo-1619535860434-ba1d8fa12536?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" alt="Garlic Bread"></div>
+                        <div class="inline-block text-xs bg-amber-50 text-amber-700 rounded-full px-3 py-1 mb-2">Appetizer</div>
+                        <h3 class="font-bold text-base mb-1">Garlic Bread with Cheese</h3>
+                        <p class="text-primary font-bold text-lg">₹120</p>
+                    </div>
+                    <div class="menu-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100 card-hover text-center">
+                        <div class="menu-img-wrap"><img src="https://images.unsplash.com/photo-1572490122747-3968b75cc699?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" alt="Milkshake"></div>
+                        <div class="inline-block text-xs bg-amber-50 text-amber-700 rounded-full px-3 py-1 mb-2">Beverage</div>
+                        <h3 class="font-bold text-base mb-1">Chocolate Milkshake</h3>
+                        <p class="text-primary font-bold text-lg">₹150</p>
+                    </div>
+                    <div class="menu-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100 card-hover text-center">
+                        <div class="menu-img-wrap"><img src="https://images.unsplash.com/photo-1624353365286-3f8d62daad51?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" alt="Brownie"></div>
+                        <div class="inline-block text-xs bg-amber-50 text-amber-700 rounded-full px-3 py-1 mb-2">Dessert</div>
+                        <h3 class="font-bold text-base mb-1">Sizzling Brownie</h3>
+                        <p class="text-primary font-bold text-lg">₹180</p>
+                    </div>
+                    <div class="menu-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100 card-hover text-center">
+                        <div class="menu-img-wrap"><img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" alt="Pizza"></div>
+                        <div class="inline-block text-xs bg-amber-50 text-amber-700 rounded-full px-3 py-1 mb-2">Main Course</div>
+                        <h3 class="font-bold text-base mb-1">Margherita Pizza</h3>
+                        <p class="text-primary font-bold text-lg">₹250</p>
+                    </div>
+                    <div class="menu-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100 card-hover text-center">
+                        <div class="menu-img-wrap"><img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" alt="Coffee"></div>
+                        <div class="inline-block text-xs bg-amber-50 text-amber-700 rounded-full px-3 py-1 mb-2">Coffee</div>
+                        <h3 class="font-bold text-base mb-1">Artisan Cappuccino</h3>
+                        <p class="text-primary font-bold text-lg">₹90</p>
+                    </div>
+                    <div class="menu-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100 card-hover text-center">
+                        <div class="menu-img-wrap"><img src="https://images.unsplash.com/photo-1484723091739-30a097e8f929?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" alt="French Toast"></div>
+                        <div class="inline-block text-xs bg-amber-50 text-amber-700 rounded-full px-3 py-1 mb-2">Breakfast</div>
+                        <h3 class="font-bold text-base mb-1">French Toast</h3>
+                        <p class="text-primary font-bold text-lg">₹130</p>
+                    </div>
+                </div>
+            </div>
+            <p class="text-center text-xs text-gray-400 mt-4 select-none">← Drag to explore more →</p>
+        </div>
+    </section>
+
+    <!-- ─── FEATURES (Slide Left/Right) ─── -->
+    <section class="py-24 px-6 max-w-7xl mx-auto">
+        <div class="flex flex-col lg:flex-row items-center gap-16">
+            <div class="flex-1 space-y-8">
+                <h2 class="text-3xl md:text-4xl font-bold tracking-tight reveal-left">Why People Love Nirvaan</h2>
+                <div class="space-y-6">
+                    <div class="feature-item flex items-start gap-4">
+                        <div class="text-2xl font-bold text-gray-300 w-10 shrink-0">01</div>
+                        <div>
+                            <h3 class="font-bold text-xl mb-1 mt-0.5">Peaceful Environment</h3>
+                            <p class="text-gray-600">Escape the hustle and bustle of the city and find your calm.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item flex items-start gap-4">
+                        <div class="text-2xl font-bold text-gray-300 w-10 shrink-0">02</div>
+                        <div>
+                            <h3 class="font-bold text-xl mb-1 mt-0.5">Outdoor Seating</h3>
+                            <p class="text-gray-600">Nature-inspired seating arrangements that refresh the soul.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item flex items-start gap-4">
+                        <div class="text-2xl font-bold text-gray-300 w-10 shrink-0">03</div>
+                        <div>
+                            <h3 class="font-bold text-xl mb-1 mt-0.5">Friendly Staff</h3>
+                            <p class="text-gray-600">Warm hospitality from our team to make you feel right at home.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item flex items-start gap-4">
+                        <div class="text-2xl font-bold text-gray-300 w-10 shrink-0">04</div>
+                        <div>
+                            <h3 class="font-bold text-xl mb-1 mt-0.5">Great Food Quality</h3>
+                            <p class="text-gray-600">Every dish crafted with the finest ingredients and passion.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 reveal-right">
+                <img src="https://images.unsplash.com/photo-1559925393-8be0ec4767c8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                     alt="Cafe Interior"
+                     class="rounded-3xl shadow-xl w-full h-[500px] object-cover">
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── SCROLL-STACKED CARDS ─── -->
+    <div id="stacked-bg" style="
+        position:fixed; inset:0; z-index:-1; pointer-events:none;
+        background-image:url('https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
+        background-size:cover; background-position:center;
+        filter:brightness(0.22) saturate(0.7);
+        opacity:0; transition:opacity 0.5s ease;
+    "></div>
+
+    <section class="stacked-section" id="stacked-section">
+        <div class="text-center mb-16 px-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight stacked-title">Why People Love Nirvaan</h2>
+            <p class="text-gray-400 mt-3 stacked-title">Experience the perfect blend of comfort, quality, and hospitality</p>
+        </div>
+        <div class="stacked-cards-container">
+            <div class="stacked-card" style="background:#f5f3ff;">
+                <span class="card-number">01</span>
+                <span class="card-tag">Atmosphere</span>
+                <h3 class="card-title">Peaceful<br>Environment</h3>
+                <p class="card-desc-title">Escape the hustle</p>
+                <p class="card-desc">Soft background music and serene surroundings create the perfect atmosphere to relax and unwind with friends or loved ones.</p>
+            </div>
+            <div class="stacked-card" style="background:#eef2ff;">
+                <span class="card-number">02</span>
+                <span class="card-tag">Dining</span>
+                <h3 class="card-title">Outdoor<br>Seating</h3>
+                <p class="card-desc-title">Nature all around you</p>
+                <p class="card-desc">Breathe fresh air surrounded by greenery in our beautifully designed outdoor seating area — perfect for every occasion.</p>
+            </div>
+            <div class="stacked-card" style="background:#f0fdf4;">
+                <span class="card-number">03</span>
+                <span class="card-tag">Quality</span>
+                <h3 class="card-title">Great Food<br>Quality</h3>
+                <p class="card-desc-title">Crafted with passion</p>
+                <p class="card-desc">Every item on our menu is prepared using the freshest ingredients, ensuring a taste that keeps you coming back for more.</p>
+            </div>
+            <div class="stacked-card" style="background:#fff7ed;">
+                <span class="card-number">04</span>
+                <span class="card-tag">Service</span>
+                <h3 class="card-title">Friendly<br>Staff</h3>
+                <p class="card-desc-title">Warm hospitality</p>
+                <p class="card-desc">Our team goes above and beyond to make your visit memorable — warm, attentive, and always smiling.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── TESTIMONIALS ─── -->
+    <section class="py-24 bg-primary text-white px-6">
+        <div class="max-w-7xl mx-auto text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 tracking-tight reveal-up">What Our Customers Say</h2>
+            <p class="text-amber-200 mb-16 reveal-up">Join over 1000+ satisfied customers who have experienced Nirvaan</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="testimonial-card bg-white/10 p-8 rounded-2xl text-left border border-white/20 backdrop-blur-sm card-hover">
+                    <div class="text-amber-200 mb-4 text-4xl">"</div>
+                    <p class="mb-6 font-light leading-relaxed">The peaceful atmosphere and delicious food make it my favorite hangout spot. The garlic bread is a must-try!</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center font-bold">P</div>
+                        <div>
+                            <h4 class="font-semibold">Priya Sharma</h4>
+                            <p class="text-amber-200 text-xs">Student, Vadodara</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card bg-white/10 p-8 rounded-2xl text-left border border-white/20 backdrop-blur-sm card-hover">
+                    <div class="text-amber-200 mb-4 text-4xl">"</div>
+                    <p class="mb-6 font-light leading-relaxed">Best café in Atladara! Truly a serene experience with very warm and welcoming staff. Perfect for weekends.</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center font-bold">R</div>
+                        <div>
+                            <h4 class="font-semibold">Rajesh Patel</h4>
+                            <p class="text-amber-200 text-xs">Professional</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card bg-white/10 p-8 rounded-2xl text-left border border-white/20 backdrop-blur-sm card-hover md:hidden lg:block">
+                    <div class="text-amber-200 mb-4 text-4xl">"</div>
+                    <p class="mb-6 font-light leading-relaxed">Loving the new vibe. Affordable pricing without compromising on premium quality and taste. Will definitely be back!</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center font-bold">A</div>
+                        <div>
+                            <h4 class="font-semibold">Aarti Desai</h4>
+                            <p class="text-amber-200 text-xs">Regular Customer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── FAQ / RESERVE ─── -->
+    <section id="reserve" class="py-24 px-6 max-w-3xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 tracking-tight reveal-up">Reserve Your Table</h2>
+        <div class="space-y-4">
+            <div class="faq-item border border-gray-100 rounded-xl bg-white shadow-sm overflow-hidden">
+                <label class="flex justify-between items-center p-5 cursor-pointer font-semibold text-lg relative">
+                    What are your opening hours?
+                    <input type="checkbox" class="accordion-toggle absolute opacity-0">
+                    <svg class="w-5 h-5 transition-transform duration-300 accordion-arrow text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </label>
+                <div class="accordion-content px-5 text-gray-600">We are open from 11:00 AM until late evening, 7 days a week.</div>
+            </div>
+            <div class="faq-item border border-gray-100 rounded-xl bg-white shadow-sm overflow-hidden">
+                <label class="flex justify-between items-center p-5 cursor-pointer font-semibold text-lg relative">
+                    Do I need to reserve a table in advance?
+                    <input type="checkbox" class="accordion-toggle absolute opacity-0">
+                    <svg class="w-5 h-5 transition-transform duration-300 accordion-arrow text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </label>
+                <div class="accordion-content px-5 text-gray-600">While walk-ins are always welcome, we highly recommend reserving a table on weekends to guarantee a spot.</div>
+            </div>
+            <div class="faq-item border border-gray-100 rounded-xl bg-white shadow-sm overflow-hidden">
+                <label class="flex justify-between items-center p-5 cursor-pointer font-semibold text-lg relative">
+                    Do you offer delivery or takeaway?
+                    <input type="checkbox" class="accordion-toggle absolute opacity-0">
+                    <svg class="w-5 h-5 transition-transform duration-300 accordion-arrow text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </label>
+                <div class="accordion-content px-5 text-gray-600">Yes! We provide smooth takeaway services and you can also find us on major food delivery platforms.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── FOOTER ─── -->
+    <footer class="bg-gray-50 pt-16 pb-8 border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+                <div class="footer-card bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center card-hover">
+                    <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-xl mb-2">Visit Us</h3>
+                    <p class="text-gray-500 text-sm mb-6">Sun Pharma Rd, Pramukh Swami Nagar, Atladara, Vadodara</p>
+                    <a href="https://www.google.com/maps/search/?api=1&query=Sun+Pharma+Rd+Pramukh+Swami+Nagar+Atladara+Vadodara" target="_blank" rel="noopener noreferrer" class="text-primary font-semibold hover:underline">Get Directions →</a>
+                </div>
+                <div class="footer-card bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center card-hover">
+                    <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-xl mb-2">Contact Us</h3>
+                    <p class="text-gray-500 text-sm mb-6">Open 11 AM - Late Evening</p>
+                    <a href="tel:+919876543210" class="text-primary font-semibold hover:underline">+91 98765 43210 →</a>
+                </div>
+                <div class="footer-card bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center flex flex-col items-center justify-center card-hover">
+                    <div class="flex text-amber-400 mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-2xl mb-1"><span class="count-num" data-target="4.8" data-decimal="true">0</span></h3>
+                    <p class="text-gray-500 text-sm">From <span class="count-num font-semibold text-foreground" data-target="1000">0</span>+ Happy Customers</p>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-gray-200 text-sm text-gray-500">
+                <p>© 2026 Nirvaan Cafe. All rights reserved.</p>
+                <div class="flex items-center gap-2"><span>Made with ❤️ in Vadodara</span></div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ─── SCRIPTS ─── -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        gsap.registerPlugin(ScrollTrigger);
+
+        // 1. HERO ENTRANCE ANIMATION
+        gsap.timeline({ delay: 0.3 })
+            .to('.hero-badge',    { opacity:1, y:0, duration:0.6, ease:'power3.out' })
+            .to('.hero-title',    { opacity:1, y:0, duration:0.7, ease:'power3.out' }, '-=0.3')
+            .to('.hero-subtitle', { opacity:1, y:0, duration:0.6, ease:'power3.out' }, '-=0.4')
+            .to('.hero-btns',     { opacity:1, y:0, duration:0.6, ease:'power3.out' }, '-=0.4')
+            .to('#hero-img-wrap', { opacity:1, duration:0.8, ease:'power2.out' }, '-=0.3');
+
+        // 2. NAVBAR SCROLL EFFECT
+        window.addEventListener('scroll', () => {
+            document.getElementById('main-header')
+                .classList.toggle('scrolled', window.scrollY > 60);
+        });
+
+        // 3. MOBILE MENU TOGGLE
+        document.getElementById('mobile-toggle').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('open');
+        });
+
+        // 4. REVEAL UP
+        gsap.utils.toArray('.reveal-up').forEach(el => {
+            gsap.fromTo(el, { opacity:0, y:50 }, {
+                opacity:1, y:0, duration:0.8, ease:'power3.out',
+                scrollTrigger: { trigger:el, start:'top 88%', toggleActions:'play none none none' }
+            });
+        });
+
+        // 5. REVEAL LEFT
+        gsap.utils.toArray('.reveal-left').forEach(el => {
+            gsap.fromTo(el, { opacity:0, x:-60 }, {
+                opacity:1, x:0, duration:0.9, ease:'power3.out',
+                scrollTrigger: { trigger:el, start:'top 85%', toggleActions:'play none none none' }
+            });
+        });
+
+        // 6. REVEAL RIGHT
+        gsap.utils.toArray('.reveal-right').forEach(el => {
+            gsap.fromTo(el, { opacity:0, x:60 }, {
+                opacity:1, x:0, duration:0.9, ease:'power3.out',
+                scrollTrigger: { trigger:el, start:'top 85%', toggleActions:'play none none none' }
+            });
+        });
+
+        // 7. REVEAL SCALE (about cards) with stagger
+        gsap.utils.toArray('.reveal-scale').forEach((el, i) => {
+            gsap.fromTo(el, { opacity:0, scale:0.85 }, {
+                opacity:1, scale:1, duration:0.7, delay: i * 0.15, ease:'back.out(1.5)',
+                scrollTrigger: { trigger:el, start:'top 88%', toggleActions:'play none none none' }
+            });
+        });
+
+        // 8. FEATURE ITEMS STAGGER
+        gsap.utils.toArray('.feature-item').forEach((el, i) => {
+            gsap.fromTo(el, { opacity:0, x:-30 }, {
+                opacity:1, x:0, duration:0.6, delay: i * 0.12, ease:'power3.out',
+                scrollTrigger: { trigger:el, start:'top 88%', toggleActions:'play none none none' }
+            });
+        });
+
+        // 9. TESTIMONIALS STAGGER
+        gsap.utils.toArray('.testimonial-card').forEach((el, i) => {
+            gsap.fromTo(el, { opacity:0, y:40 }, {
+                opacity:1, y:0, duration:0.7, delay: i * 0.15, ease:'power3.out',
+                scrollTrigger: { trigger:el, start:'top 88%', toggleActions:'play none none none' }
+            });
+        });
+
+        // 10. FOOTER CARDS STAGGER
+        gsap.utils.toArray('.footer-card').forEach((el, i) => {
+            gsap.fromTo(el, { opacity:0, y:30 }, {
+                opacity:1, y:0, duration:0.65, delay: i * 0.12, ease:'power3.out',
+                scrollTrigger: { trigger:el, start:'top 90%', toggleActions:'play none none none' }
+            });
+        });
+
+        // 11. FAQ ITEMS STAGGER
+        gsap.utils.toArray('.faq-item').forEach((el, i) => {
+            gsap.fromTo(el, { opacity:0, y:20 }, {
+                opacity:1, y:0, duration:0.5, delay: i * 0.1, ease:'power2.out',
+                scrollTrigger: { trigger:el, start:'top 90%', toggleActions:'play none none none' }
+            });
+        });
+
+        // 12. ANIMATED TITLE UNDERLINES
+        document.querySelectorAll('.animated-title').forEach(el => {
+            ScrollTrigger.create({
+                trigger: el, start: 'top 85%',
+                onEnter: () => el.classList.add('title-visible')
+            });
+        });
+
+        // 13. DRAG CAROUSEL
+        const track = document.getElementById('menu-track');
+        const wrapper = track.parentElement;
+        let isDragging = false, startX = 0, scrollLeft = 0;
+
+        track.addEventListener('mousedown', e => {
+            isDragging = true;
+            startX = e.pageX - wrapper.offsetLeft;
+            scrollLeft = wrapper.scrollLeft;
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        track.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const x = e.pageX - wrapper.offsetLeft;
+            wrapper.scrollLeft = scrollLeft - (x - startX) * 1.5;
+        });
+
+        // Touch support for carousel
+        let tStartX = 0, tScrollLeft = 0;
+        track.addEventListener('touchstart', e => {
+            tStartX = e.touches[0].pageX;
+            tScrollLeft = wrapper.scrollLeft;
+        }, { passive: true });
+        track.addEventListener('touchmove', e => {
+            wrapper.scrollLeft = tScrollLeft - (e.touches[0].pageX - tStartX) * 1.2;
+        }, { passive: true });
+
+        // 14. COUNTER ANIMATION
+        document.querySelectorAll('.count-num').forEach(el => {
+            const target = parseFloat(el.dataset.target);
+            const isDecimal = el.dataset.decimal === 'true';
+            ScrollTrigger.create({
+                trigger: el, start: 'top 90%', once: true,
+                onEnter: () => {
+                    const startTime = performance.now();
+                    const dur = 1800;
+                    const tick = (now) => {
+                        const p = Math.min((now - startTime) / dur, 1);
+                        const ease = 1 - Math.pow(1 - p, 3);
+                        el.textContent = isDecimal
+                            ? (target * ease).toFixed(1)
+                            : Math.floor(target * ease);
+                        if (p < 1) requestAnimationFrame(tick);
+                    };
+                    requestAnimationFrame(tick);
+                }
+            });
+        });
+
+        // 15. HERO PARALLAX
+        gsap.to('.hero-bg', {
+            backgroundPositionY: '30%',
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '#home',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: true
+            }
+        });
+
+        // 16. STACKED CARDS — cafe bg fade in/out + scale-down highlight effect
+        const stackedSection = document.getElementById('stacked-section');
+        const stackedBg      = document.getElementById('stacked-bg');
+        const stackedCards   = gsap.utils.toArray('.stacked-card');
+
+        // Fade cafe background in when section enters, out when it leaves
+        ScrollTrigger.create({
+            trigger: stackedSection,
+            start: 'top 60%',
+            end: 'bottom 40%',
+            onEnter:      () => { stackedBg.style.opacity = '1'; },
+            onLeave:      () => { stackedBg.style.opacity = '0'; },
+            onEnterBack:  () => { stackedBg.style.opacity = '1'; },
+            onLeaveBack:  () => { stackedBg.style.opacity = '0'; },
+        });
+
+        // Stacked title fade in
+        gsap.utils.toArray('.stacked-title').forEach((el, i) => {
+            gsap.fromTo(el, { opacity:0, y:30 }, {
+                opacity:1, y:0, duration:0.7, delay: i * 0.12, ease:'power3.out',
+                scrollTrigger: { trigger:el, start:'top 85%', toggleActions:'play none none none' }
+            });
+        });
+
+        // Scale-down + grey-out effect
+        stackedCards.forEach((card, i) => {
+            if (i === stackedCards.length - 1) return;
+
+            ScrollTrigger.create({
+                trigger: stackedCards[i + 1],
+                start: 'top 85%',
+                end: 'top 10%',
+                scrub: 0.4,
+                onUpdate: (self) => {
+                    const p = self.progress;
+                    const scale = 1 - p * 0.04;
+                    const brightness = 1 - p * 0.45;
+                    card.style.transform = `scale(${scale})`;
+                    card.style.filter    = `brightness(${brightness})`;
+                }
+            });
+        });
+
+    });
+    </script>
+</body>
+</html>
